@@ -105,3 +105,14 @@ For full license terms, see [LICENSE.md](LICENSE.md)
 Pokémon and all related marks are registered trademarks of Nintendo, Game Freak, and The Pokémon Company. This project is not affiliated with or endorsed by these companies.
 
 All Pokémon data and assets are served via [PokéAPI](https://pokeapi.co/) and are not included in this repository.
+
+## Screenshots
+
+### Dark Mode & Search Functionality
+![Dark Mode and Search](https://i.imgur.com/ll3AvA4.png)
+
+### Detailed Pokémon View
+![Pokemon Details](https://i.imgur.com/Ex12BLe.png)
+
+### Evolution Chain & Forms
+![Evolution and Forms](https://i.imgur.com/hCz9ipM.png)
