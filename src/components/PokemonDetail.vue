@@ -464,6 +464,13 @@ const formatStatName = (name) => {
   filter: drop-shadow(0 4px 16px #0003);
   max-width: 100%;
   max-height: 100%;
+  image-rendering: optimizeSpeed;             /* legacy */
+  image-rendering: -moz-crisp-edges;          /* Firefox */
+  image-rendering: -o-crisp-edges;            /* Opera */
+  image-rendering: -webkit-optimize-contrast; /* Safari */
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+  -ms-interpolation-mode: nearest-neighbor;   /* IE (non standard) */
 }
 .detail-content {
   background: #222;

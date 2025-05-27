@@ -199,14 +199,22 @@ const spriteUrl = computed(() => {
 .pokemon-image[data-sprite-type="icons"] {
   width: 40px;
   height: 30px;
+  image-rendering: optimizeSpeed;             /* legacy */
+  image-rendering: -moz-crisp-edges;          /* Firefox */
+  image-rendering: -o-crisp-edges;            /* Opera */
+  image-rendering: -webkit-optimize-contrast; /* Safari */
+  image-rendering: crisp-edges;
   image-rendering: pixelated;
+  -ms-interpolation-mode: nearest-neighbor;   /* IE (non standard) */
 }
 
 .pokemon-image[data-sprite-type="dream"],
 .pokemon-image[data-sprite-type="official"] {
-  width: 120px;
-  height: 120px;
-  image-rendering: auto; /* Rimuovi pixelated per artwork */
+  width: 200px;
+  height: 200px;
+  image-rendering: smooth;
+  image-rendering: high-quality;
+  image-rendering: auto;
 }
 
 .pokemon-card:hover .pokemon-image {
