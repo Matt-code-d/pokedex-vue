@@ -27,7 +27,7 @@
           </div>
           <div class="navbar-item">
             <div class="buttons">
-              <a href="https://github.com/PokeAPI/pokeapi" 
+              <a href="https://github.com/Matt-code-d/pokedex-vue" 
                  target="_blank" 
                  class="button is-dark is-small">
                 <span class="icon">
