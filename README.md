@@ -15,6 +15,21 @@ A modern Pokédex web application built with Vue 3 and Vite, featuring a respons
 - 🔄 Evolution chain visualization
 - 🎭 Alternative forms support
 - 🌟 Normal/Shiny sprite toggle
+- 🌐 Automatic language detection (IT/EN)
+- 🔤 Full interface translation
+- 🌍 Browser language support
+
+## Language Support
+
+The application automatically detects the user's browser language and provides content in:
+- 🇮🇹 Italian (Default)
+- 🇬🇧 English (Fallback)
+
+The interface language is automatically selected based on the browser settings:
+- Italian for Italian browsers
+- English for all other languages
+
+No manual configuration needed - the app handles translation seamlessly.
 
 ## Tech Stack
 
