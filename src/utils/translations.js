@@ -1,4 +1,7 @@
-export const translations = {
+import { translationsEn } from './translations.en';
+
+// Rinomina le traduzioni italiane
+const translationsIt = {
   stats: {
     'hp': 'PS',
     'attack': 'Attacco',
@@ -61,3 +64,12 @@ export const translations = {
     'fairy': 'Folletto'
   }
 };
+
+// Rileva la lingua del browser
+const browserLang = navigator.language.split('-')[0];
+
+// Esporta le traduzioni in base alla lingua
+export const translations = browserLang === 'it' ? translationsIt : translationsEn;
+
+// Aggiungi funzione helper per ottenere la lingua corrente
+export const getCurrentLanguage = () => browserLang === 'it' ? 'it' : 'en';
