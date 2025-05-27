@@ -31,7 +31,7 @@ export const translationsEn = {
     'measurements': 'Measurements',
     'height_unit': 'm',
     'weight_unit': 'kg',
-    'forms': 'Alternative Forms',
+    'forms': 'Forms',
     'regional_form': 'Regional Form',
     'mega_evolution': 'Mega Evolution',
     'gigantamax': 'Gigantamax',

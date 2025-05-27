@@ -19,7 +19,7 @@
           {{ translate('types', type) }}
         </span>
       </div>
-      <img :src="pokemon.image" :alt="pokemon.name" class="pokemon-image" />
+      <img :src="spriteUrl" :alt="pokemon.name" class="pokemon-image" />
     </div>
   </div>
 </template>
@@ -29,7 +29,13 @@ import { computed } from 'vue';
 import { translations } from '../utils/translations';
 import { typeColors } from '../utils/typeColors';
 
-const props = defineProps(['pokemon']);
+const props = defineProps({
+  pokemon: Object,
+  spriteType: {
+    type: String,
+    default: 'default'
+  }
+});
 
 const getTypeGradient = (types) => {
   if (!types || types.length === 0) {
@@ -67,6 +73,32 @@ const formatName = (name) => {
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 };
+
+// Aggiungi costanti per i limiti degli sprite
+const SPRITE_LIMITS = {
+  icons: 807,    // Gen 7 icons limit
+  dream: 649     // Dream World sprites limit
+};
+
+const spriteUrl = computed(() => {
+  // Rimuovi eventuali zeri iniziali dall'id
+  const rawId = parseInt(props.pokemon.id.replace(/^0+/, ''));
+  
+  switch (props.spriteType) {
+    case 'icons':
+      return rawId <= SPRITE_LIMITS.icons 
+        ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-vii/icons/${rawId}.png`
+        : props.pokemon.image;
+    case 'dream':
+      return rawId <= SPRITE_LIMITS.dream
+        ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/${rawId}.svg`
+        : props.pokemon.image;
+    case 'official':
+      return props.pokemon.artwork || props.pokemon.image;
+    default:
+      return props.pokemon.image;
+  }
+});
 </script>
 
 <style scoped>
@@ -161,6 +193,20 @@ const formatName = (name) => {
   margin: 0.5rem auto 0;
   filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
   transition: transform 0.3s;
+  image-rendering: pixelated; /* Solo per gli sprite pixel art */
+}
+
+.pokemon-image[data-sprite-type="icons"] {
+  width: 40px;
+  height: 30px;
+  image-rendering: pixelated;
+}
+
+.pokemon-image[data-sprite-type="dream"],
+.pokemon-image[data-sprite-type="official"] {
+  width: 120px;
+  height: 120px;
+  image-rendering: auto; /* Rimuovi pixelated per artwork */
 }
 
 .pokemon-card:hover .pokemon-image {

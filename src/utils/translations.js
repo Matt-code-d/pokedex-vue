@@ -34,7 +34,7 @@ const translationsIt = {
     'measurements': 'Misure',
     'height_unit': 'm',
     'weight_unit': 'kg',
-    'forms': 'Forme Alternative',
+    'forms': 'Forme',
     'regional_form': 'Forma Regionale',
     'mega_evolution': 'Mega Evoluzione',
     'gigantamax': 'Gigamax',

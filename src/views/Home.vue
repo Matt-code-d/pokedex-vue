@@ -1,6 +1,9 @@
 <template>
   <div class="pokedex-app">
-    <Navbar :pokemon-count="displayPokemons.length" />
+    <Navbar 
+      :pokemon-count="displayPokemons.length"
+      @sprite-change="spriteType = $event"
+    />
 
     <div class="main-content">
       <div class="search-container">
@@ -19,7 +22,11 @@
           <div v-for="pokemon in displayPokemons"
                :key="pokemon.id"
                class="pokemon-item">
-            <PokemonCard :pokemon="pokemon" @click="selectPokemon(pokemon)" />
+            <PokemonCard 
+              :pokemon="pokemon" 
+              :sprite-type="spriteType"
+              @click="selectPokemon(pokemon)" 
+            />
           </div>
         </transition-group>
         
@@ -72,6 +79,7 @@ const selected = ref(null);
 const types = ref([]);
 const selectedType = ref('');
 const currentPage = ref(1);
+const spriteType = ref('default');
 
 const displayPokemons = computed(() => {
   let list = Array.from(allPokemons.value.values());
@@ -152,10 +160,17 @@ const fetchPokemonForms = async (speciesUrl) => {
     for (const variety of species.varieties) {
       if (!variety.is_default) {
         const { data: formData } = await axios.get(variety.pokemon.url);
+        const formId = formData.id;
         forms.push({
           name: formData.name,
+          id: formId,
           image: formData.sprites?.other['official-artwork']?.front_default || formData.sprites?.front_default,
-          types: formData.types.map(t => t.type.name)
+          imageShiny: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/${formId}.png`,
+          types: formData.types.map(t => t.type.name),
+          stats: formData.stats.map(s => ({
+            name: s.stat.name.toLowerCase().replace(/-/g, ' '),
+            value: s.base_stat
+          }))
         });
       }
     }
@@ -173,11 +188,19 @@ const fetchPokemonForms = async (speciesUrl) => {
             formData.form_name.includes('hisui') ||
             formData.form_name.includes('paldea') ||
             formData.form_name.includes('gmax'))) {
+          const formId = formData.pokemon.url.split('/').slice(-2, -1)[0];
+          const { data: pokemonData } = await axios.get(formData.pokemon.url);
           forms.push({
             name: formData.name,
+            id: formId,
             form_name: formData.form_name,
-            image: formData.sprites?.front_default,
-            types: formData.types?.map(t => t.type.name) || []
+            image: formData.sprites?.other['official-artwork']?.front_default || formData.sprites?.front_default,
+            imageShiny: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/${formId}.png`,
+            types: formData.types?.map(t => t.type.name) || [],
+            stats: pokemonData.stats.map(s => ({
+              name: s.stat.name.toLowerCase().replace(/-/g, ' '),
+              value: s.base_stat
+            }))
           });
         }
       }
@@ -330,6 +353,10 @@ watch(selectedType, () => {
   currentPage.value = 1;
   refreshDisplayPokemons();
 });
+
+const handleSpriteChange = (type) => {
+  spriteType.value = type;
+};
 
 const translate = (category, key) => {
   return translations[category]?.[key] || key;

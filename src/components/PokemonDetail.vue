@@ -1,28 +1,29 @@
 <template>
   <div class="pokemon-detail-card" :style="{ background: bgColor }">
     <div class="detail-header">
-      <button class="button is-white is-small" @click="$emit('close')">
+      <button class="button is-white is-small" @click="closeModal">
         <span class="icon"><i class="fas fa-arrow-left"></i></span>
       </button>
       <span class="detail-title">{{ formatName(pokemon.name) }}</span>
       <span class="detail-id">#{{ pokemon.id?.toString().padStart(3, '0') }}</span>
     </div>
     <div class="detail-img-wrap">
-      <img :src="pokemon.image" :alt="pokemon.name" class="detail-img" />
+      <!-- Cambiato da currentArtwork a currentSprite -->
+      <img :src="currentSprite" :alt="pokemon.name" class="detail-img" />
     </div>
     <div class="detail-content">
-      <!-- <h2 class="detail-name">{{ pokemon.name }}</h2> -->
-
       <!-- Gallery -->
       <div class="detail-gallery">
-        <img :src="pokemon.artwork" :alt="pokemon.name" class="artwork" />
+        <div class="artwork-container">
+          <img :src="currentArtwork" :alt="pokemon.name" class="artwork" />
+        </div>
         <div class="sprites">
-          <div class="sprite-container">
-            <img :src="pokemon.image" :alt="translate('ui', 'normal_form')" />
+          <div class="sprite-container" :class="{active: !isShiny}" @click="setShiny(false)">
+            <img :src="normalSprite" :alt="translate('ui', 'normal_form')" />
             <span class="sprite-label">{{ translate('ui', 'normal_form') }}</span>
           </div>
-          <div class="sprite-container">
-            <img :src="pokemon.imageShiny" :alt="translate('ui', 'shiny_form')" />
+          <div class="sprite-container" :class="{active: isShiny}" @click="setShiny(true)">
+            <img :src="currentShinySprite" :alt="translate('ui', 'shiny_form')" />
             <span class="sprite-label">{{ translate('ui', 'shiny_form') }}</span>
           </div>
         </div>
@@ -31,7 +32,7 @@
       <!-- Types and Basic Info -->
       <div class="detail-types">
         <span 
-          v-for="t in pokemon.types" 
+          v-for="t in currentTypes" 
           :key="t"
           class="type-badge"
           :style="{ background: typeColors[t] }"
@@ -53,7 +54,7 @@
       <!-- Stats Section -->
       <div class="detail-section">
         <span class="detail-section-title">{{ translate('ui', 'base_stats') }}</span>
-        <div v-for="stat in pokemon.stats" :key="stat.name" class="stat-row">
+        <div v-for="stat in currentStats" :key="stat.name" class="stat-row">
           <span class="stat-name">{{ translate('stats', formatStatName(stat.name)) }}</span>
           <div class="stat-bar-wrap">
             <div class="stat-bar-bg">
@@ -94,7 +95,9 @@
         <div class="forms-grid">
           <div v-for="form in pokemon.forms" 
                :key="form.name"
-               class="form-card">
+               class="form-card"
+               :class="{active: selectedForm && selectedForm.name === form.name}"
+               @click="selectForm(form)">
             <img :src="form.image" :alt="form.name" class="form-image" />
             <div class="form-info">
               <span class="form-name">
@@ -102,6 +105,20 @@
               </span>
               <div class="form-types">
                 <span v-for="type in form.types" 
+                      :key="type"
+                      class="tag is-small"
+                      :class="'type-' + type">
+                  {{ translate('types', type) }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div v-if="pokemon.forms.length" class="form-card" :class="{active: !selectedForm}" @click="selectForm(null)">
+            <img :src="pokemon.artwork" :alt="pokemon.name" class="form-image" />
+            <div class="form-info">
+              <span class="form-name">{{ translate('ui', 'normal_form') }}</span>
+              <div class="form-types">
+                <span v-for="type in pokemon.types" 
                       :key="type"
                       class="tag is-small"
                       :class="'type-' + type">
@@ -125,7 +142,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { translations } from '../utils/translations';
 import { typeColors } from '../utils/typeColors';
 
@@ -146,6 +163,115 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['close']);
+
+// Stato per shiny e forma selezionata
+const isShiny = ref(false);
+const selectedForm = ref(null);
+
+// Cambia shiny
+function setShiny(val) {
+  isShiny.value = val;
+}
+
+// Cambia forma alternativa
+function selectForm(form) {
+  selectedForm.value = form;
+}
+
+// Reset quando si chiude la modale
+function closeModal() {
+  isShiny.value = false;
+  selectedForm.value = null;
+  emit('close');
+}
+
+// Aggiorna shiny/forma se cambia pokemon
+watch(() => props.pokemon, () => {
+  isShiny.value = false;
+  selectedForm.value = null;
+});
+
+// Funzione per ottenere l'artwork ufficiale (normale o shiny) dato un id
+function getOfficialArtwork(id, shiny = false) {
+  if (!id) return '';
+  const num = typeof id === 'string' ? id.replace(/^0+/, '') : id;
+  return shiny
+    ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/${num}.png`
+    : `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${num}.png`;
+}
+
+// Artwork corrente
+const currentArtwork = computed(() => {
+  const getShinyArtwork = (id) => 
+    `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/${id}.png`;
+  
+  const getNormalArtwork = (id) =>
+    `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
+
+  if (selectedForm.value?.id) {
+    return isShiny.value ? getShinyArtwork(selectedForm.value.id) : getNormalArtwork(selectedForm.value.id);
+  }
+
+  const pokemonId = typeof props.pokemon.id === 'string' 
+    ? props.pokemon.id.replace(/^0+/, '') 
+    : props.pokemon.id;
+
+  return isShiny.value ? getShinyArtwork(pokemonId) : getNormalArtwork(pokemonId);
+});
+
+// Sprite corrente
+const currentSprite = computed(() => {
+  const getSpriteUrl = (id, shiny = false) => {
+    const num = typeof id === 'string' ? id.replace(/^0+/, '') : id;
+    return shiny
+      ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${num}.png`
+      : `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${num}.png`;
+  };
+
+  if (selectedForm.value?.id) {
+    return isShiny.value ? getSpriteUrl(selectedForm.value.id, true) : getSpriteUrl(selectedForm.value.id);
+  }
+
+  const pokemonId = typeof props.pokemon.id === 'string' 
+    ? props.pokemon.id.replace(/^0+/, '') 
+    : props.pokemon.id;
+
+  return isShiny.value ? getSpriteUrl(pokemonId, true) : getSpriteUrl(pokemonId);
+});
+const currentShinySprite = computed(() => {
+  const getSpriteUrl = (id) => 
+    `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${id}.png`;
+
+  if (selectedForm.value?.id) {
+    return getSpriteUrl(selectedForm.value.id);
+  }
+
+  const pokemonId = typeof props.pokemon.id === 'string' 
+    ? props.pokemon.id.replace(/^0+/, '') 
+    : props.pokemon.id;
+
+  return getSpriteUrl(pokemonId);
+});
+const normalSprite = computed(() => {
+  const getSpriteUrl = (id) => 
+    `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
+
+  if (selectedForm.value?.id) {
+    return getSpriteUrl(selectedForm.value.id);
+  }
+
+  const pokemonId = typeof props.pokemon.id === 'string' 
+    ? props.pokemon.id.replace(/^0+/, '') 
+    : props.pokemon.id;
+
+  return getSpriteUrl(pokemonId);
+});
+
+// Tipi correnti
+const currentTypes = computed(() => {
+  if (selectedForm.value) return selectedForm.value.types;
+  return props.pokemon.types;
+});
 
 const getTypeGradient = (types) => {
   if (!types || types.length === 0) {
@@ -170,7 +296,7 @@ const getTypeGradient = (types) => {
 };
 
 const bgColor = computed(() => 
-  getTypeGradient(props.pokemon?.types)
+  getTypeGradient(currentTypes.value)
 );
 
 const formattedWeight = computed(() => {
@@ -232,6 +358,13 @@ const evolutionChain = computed(() => {
   }
 
   return chain;
+});
+
+// Sposta questa computed property prima del suo utilizzo
+// Statistiche correnti
+const currentStats = computed(() => {
+  if (selectedForm.value) return selectedForm.value.stats;
+  return props.pokemon.stats;
 });
 
 const formatName = (name) => {
@@ -329,6 +462,8 @@ const formatStatName = (name) => {
   object-fit: contain;
   margin-top: -1.5rem;
   filter: drop-shadow(0 4px 16px #0003);
+  max-width: 100%;
+  max-height: 100%;
 }
 .detail-content {
   background: #222;
@@ -355,9 +490,21 @@ const formatStatName = (name) => {
   align-items: center;
   gap: 1rem;
 }
-.artwork {
+.artwork-container {
   width: 200px;
   height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.artwork {
+  position: absolute;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
   object-fit: contain;
 }
 .sprites {
@@ -368,6 +515,9 @@ const formatStatName = (name) => {
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 5px;
+  border-radius: 0.8rem;
+  cursor: pointer;
 }
 .sprite-label {
   margin-top: 0.5rem;
@@ -539,6 +689,12 @@ const formatStatName = (name) => {
   border-radius: 12px;
   padding: 1rem;
   text-align: center;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.form-card:hover {
+  transform: translateY(-2px);
 }
 
 .form-image {
@@ -546,6 +702,8 @@ const formatStatName = (name) => {
   height: 100px;
   object-fit: contain;
   margin-bottom: 0.5rem;
+  max-width: 100px;
+  max-height: 100px;
 }
 
 .form-name {
@@ -559,6 +717,18 @@ const formatStatName = (name) => {
   display: flex;
   gap: 0.5rem;
   justify-content: center;
+}
+
+.sprite-container.active {
+  outline: 2px solid #555;
+  box-shadow: 0 0 0 2px #84848454;
+  padding: 5px;
+  border-radius: 0.8rem;
+}
+
+.form-card.active {
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 2px #ffd60055;
 }
 
 @media (max-width: 480px) {

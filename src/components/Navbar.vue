@@ -17,6 +17,16 @@
       <div class="navbar-menu">
         <div class="navbar-end">
           <div class="navbar-item">
+            <div class="select is-small mr-2">
+              <select v-model="selectedSpriteType" @change="changeSpriteType">
+                <option value="default">Classic Sprites</option>
+                <option value="icons">Gen 7 Icons</option>
+                <option value="dream">Dream World</option>
+                <option value="official">Official Artwork</option>
+              </select>
+            </div>
+          </div>
+          <div class="navbar-item">
             <div class="tags has-addons">
               <span class="tag is-dark stats-tag">
                 <span class="icon"><i class="fas fa-database"></i></span>
@@ -44,14 +54,23 @@
 </template>
 
 <script setup>
+import { ref } from 'vue';
 import { translations } from '../utils/translations';
 
-defineProps({
+const props = defineProps({
   pokemonCount: {
     type: Number,
     default: 0
   }
 });
+
+const emit = defineEmits(['spriteChange']);
+
+const selectedSpriteType = ref('default');
+
+const changeSpriteType = () => {
+  emit('spriteChange', selectedSpriteType.value);
+};
 
 const translate = (category, key) => {
   return translations[category]?.[key] || key;
