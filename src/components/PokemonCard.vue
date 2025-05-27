@@ -187,8 +187,8 @@ const spriteUrl = computed(() => {
 }
 
 .pokemon-image {
-  width: 120px;
-  height: 120px;
+  width: 200px;
+  height: 200px;
   object-fit: contain;
   margin: 0.5rem auto 0;
   filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
